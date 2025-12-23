@@ -72,9 +72,10 @@ done
 
 
 ### RELOAD PROCESSES ###
-pkill waybar || true
-nohup waybar >/dev/null 2>&1 &
-hyprctl reload
+omarchy-refresh-waybar
+omarchy-refresh-hypridle
+omarchy-refresh-hyprland
+omarchy-refresh-hyprlock
 source $HOME/.bashrc
 
 
