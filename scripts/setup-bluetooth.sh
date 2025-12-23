@@ -15,7 +15,7 @@ DEVICES=$(busctl tree org.bluez \
 
 if [[ -z "$DEVICES" ]]; then
     echo "⚠️ No Bluetooth devices found."
-    exit 1
+    exit 0
 fi
 
 # -------------------------
@@ -34,7 +34,9 @@ echo "Select devices to manage: Type 'y' to add, 'n' to skip, 'a' to add all rem
 
 for DEVICE in $DEVICES; do
     NAME=$(busctl get-property org.bluez "$DEVICE" org.bluez.Device1 Name | tr -d '"')
-    read -n 1 -p "Add $DEVICE ($NAME)? [y/n/a] " yn
+    yn=""
+    read -rsn1 -p "Add $DEVICE ($NAME)? [Y]es/[No]/[A]ll " yn </dev/tty || true
+    echo
     echo    # move to a new line after the key press
     case $yn in
         [Yy]*) SELECTED+=("$DEVICE") ;;
@@ -50,7 +52,7 @@ done
 
 if [[ "${#SELECTED[@]}" -eq 0 ]]; then
     echo "⚠️ No devices selected. Exiting."
-    exit 1
+    exit 0
 fi
 
 # -------------------------
