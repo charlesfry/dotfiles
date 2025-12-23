@@ -4,23 +4,25 @@ set -Eeuo pipefail
 ### CONFIG ###
 CONFIGS=(bashrc hypr nvim shell waybar)
 CONFIG_DIR="$HOME/.config"
-REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"  # ../ from install/ to repo root
+SRC_DIR="$ROOT_DIR/config/"
+echo "Copying config files from $SRC_DIR to $CONFIG_DIR"
 
 TIMESTAMP="$(date +"%Y%m%d-%H%M%S")"
-BACKUP_DIR="$REPO_DIR/backup/.bak-$TIMESTAMP"
+BACKUP_DIR="$ROOT_DIR/backup/.bak-$TIMESTAMP"
 
 ### SAFETY ###
 trap 'echo "❌ Install failed on line $LINENO"; exit 1' ERR
 
 echo "🔧 Dotfiles install starting..."
-echo "📁 Repo: $REPO_DIR"
+echo "📁 Repo: $SRC_DIR"
 echo "📦 Backup dir: $BACKUP_DIR"
 echo
-
 mkdir -p "$BACKUP_DIR"
 
 
-### SYMLINK SAFETY CHECK ###
+### SYMLINK SAFETY CHECK IN CASE THIS PC IS STRANGE ###
 echo "🔍 Checking for existing symlinks..."
 for cfg in "${CONFIGS[@]}"; do
   if [[ "$cfg" == "bashrc" ]]; then
@@ -29,20 +31,22 @@ for cfg in "${CONFIGS[@]}"; do
     DEST="$CONFIG_DIR/$cfg"
   fi
   if [[ -L "$DEST" ]]; then
-    echo "⛓‍💥 ERROR: $DEST is a symlink, which is not supported. Aborting install."
+    echo "⛓‍💥  ERROR: $DEST is a symlink, which is not supported. Aborting install."
     exit 1
   fi
 done
+echo "  No symlink issues found."
+echo
 
 
 ### MAIN LOOP ###
 echo "Starting installation..."
 for cfg in "${CONFIGS[@]}"; do
   if [[ "$cfg" == "bashrc" ]]; then
-    SRC="$REPO_DIR/.bashrc"
+    SRC="$SRC_DIR/.bashrc"
     DEST="$HOME/.bashrc"
   else
-    SRC="$REPO_DIR/$cfg"
+    SRC="$SRC_DIR/$cfg"
     DEST="$CONFIG_DIR/$cfg"
   fi
 
@@ -65,6 +69,7 @@ for cfg in "${CONFIGS[@]}"; do
     chmod +x "$DEST/$relative"
   done < <(find "$SRC" -type f -name "*.sh" -print0)
 done
+
 
 ### RELOAD PROCESSES ###
 pkill waybar || true
