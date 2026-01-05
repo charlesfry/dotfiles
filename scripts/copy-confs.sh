@@ -47,7 +47,7 @@ for cfg in "${CONFIGS[@]}"; do
     DEST="$HOME/.bashrc"
   else
     SRC="$SRC_DIR/$cfg"
-    DEST="$CONFIG_DIR/$cfg"
+    DEST="$CONFIG_DIR/"
   fi
 
   if [[ ! -e "$SRC" ]]; then
@@ -55,9 +55,9 @@ for cfg in "${CONFIGS[@]}"; do
     continue
   fi
 
-  if [[ -e "$DEST" && ! -L "$DEST" ]]; then
+  if [[ -e "$DEST$cfg" && ! -L "$DEST$cfg" ]]; then
     echo "📦 Backing up $DEST"
-    mv "$DEST" "$BACKUP_DIR/"
+    mv "$DEST$cfg" "$BACKUP_DIR/$cfg"
   fi
 
   echo "➡️  Installing $cfg"
