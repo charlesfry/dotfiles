@@ -6,11 +6,9 @@ source ~/.local/share/omarchy/default/bash/rc
 
 alias vim='nvim'
 alias vi='nvim'
-alias vd='openvpn $HOME/vpn/inc-dev-vpn.ovpn'
-alias vq='openvpn $HOME/vpn/inc-qa-vpn.ovpn'
-alias vp='openvpn $HOME/vpn/inc-prod-vpn.ovpn'
 
-alias openvpn-rootless='sudo setcap cap_net_admin+ep $(which openvpn)'
+# VPN configs
+source $HOME/vpn/.vpnrc
 
 ds() {
     cd /home/char/tradeswell/ds-ml-platform/ || return

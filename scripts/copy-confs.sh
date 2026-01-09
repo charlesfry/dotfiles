@@ -71,14 +71,6 @@ for cfg in "${CONFIGS[@]}"; do
 done
 
 
-### RELOAD PROCESSES ###
-omarchy-refresh-waybar
-omarchy-refresh-hypridle
-omarchy-refresh-hyprland
-omarchy-refresh-hyprlock
-source $HOME/.bashrc
-
-
 echo
 echo "✅ Done."
 echo "🕒 Backup saved at: $BACKUP_DIR"

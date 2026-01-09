@@ -1,4 +1,5 @@
 /backup
 /.env
 /config/hypr/scripts/bluetooth
+*.ovpn
 

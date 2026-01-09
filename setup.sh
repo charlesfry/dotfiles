@@ -23,20 +23,24 @@ echo "🐍 installing Miniforge3..."
 echo "🌐 installing Brave browser with GPU support..."
 "$SCRIPTS/brave-with-gpu.sh"
 
-# setup bluetooth connections
-echo "🔵 setting up bluetooth connections..."
-"$SCRIPTS/setup-bluetooth.sh"
-echo
-
 # remove bloat
 echo "🧹 removing bloatware..."
 "$SCRIPTS/remove-bloat.sh"
+echo
+
+# Set up VPN configs.
+echo "🔐 setting up VPN configs..."
+"$SCRIPTS/vpn.sh"
 echo
 
 # Call copy_confs.sh
 echo "📋 copying configuration files..."
 "$SCRIPTS/copy-confs.sh"
 echo
+
+# Reload to apply changes. Do this after everything else.
+echo "Reloading to apply all changes..."
+"$SCRIPTS/reload.sh"
 
 # Get themes
 echo "🎨 installing themes..."
