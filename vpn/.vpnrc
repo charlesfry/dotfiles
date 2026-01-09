@@ -1,4 +1,2 @@
 #!/usr/bin/env bash
 
-alias openvpn-rootless='sudo setcap cap_net_admin+ep $(which openvpn)'
-
