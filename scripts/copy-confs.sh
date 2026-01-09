@@ -6,7 +6,7 @@ CONFIGS=(bashrc hypr nvim shell waybar)
 CONFIG_DIR="$HOME/.config"
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"  # ../ from install/ to repo root
-SRC_DIR="$ROOT_DIR/config/"
+SRC_DIR="$ROOT_DIR/config"
 echo "Copying config files from $SRC_DIR to $CONFIG_DIR"
 
 TIMESTAMP="$(date +"%Y%m%d-%H%M%S")"
@@ -60,7 +60,7 @@ for cfg in "${CONFIGS[@]}"; do
     mv "$DEST$cfg" "$BACKUP_DIR/$cfg"
   fi
 
-  echo "➡️  Installing $cfg"
+  echo "➡️  Installing $cfg by copying $SRC to $DEST"
   cp -r "$SRC" "$DEST"
 
   # Only make the copied .sh files executable

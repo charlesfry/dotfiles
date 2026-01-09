@@ -7,9 +7,6 @@ source ~/.local/share/omarchy/default/bash/rc
 alias vim='nvim'
 alias vi='nvim'
 
-# VPN configs
-source $HOME/vpn/.vpnrc
-
 ds() {
     cd /home/char/tradeswell/ds-ml-platform/ || return
     conda activate ds-ml-platform
