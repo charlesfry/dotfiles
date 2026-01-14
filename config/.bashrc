@@ -4,6 +4,9 @@
 # All the default Omarchy aliases and functions
 source ~/.local/share/omarchy/default/bash/rc
 
+# VPN configs
+source ~/vpn/.vpnrc
+
 alias vim='nvim'
 alias vi='nvim'
 
@@ -18,6 +21,12 @@ mmm() {
     cd /home/char/tradeswell/ds-ml-platform/ || return
     conda activate mmm
     nvim /home/char/tradeswell/ds-ml-platform/
+}
+
+gt() {
+    cd /home/char/gatech/ml4t/ || return
+    conda activate ml4t
+    nvim /home/char/gatech/ml4t/
 }
 
 # Conda only for interactive shells
