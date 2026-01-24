@@ -29,6 +29,12 @@ gt() {
     nvim /home/char/gatech/ml4t/
 }
 
+grade() {
+    cd /home/char/gatech/ml4t/assess_portfolio/ || return
+    conda activate ml4t
+    PYTHONPATH="$HOME/gatech/ml4t" python grade_analysis.py
+}
+
 # Conda only for interactive shells
 if [ -n "$PS1" ] && [ -f /home/char/miniforge3/etc/profile.d/conda.sh ]; then
     . /home/char/miniforge3/etc/profile.d/conda.sh
