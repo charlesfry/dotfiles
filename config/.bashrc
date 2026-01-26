@@ -4,6 +4,9 @@
 # All the default Omarchy aliases and functions
 source ~/.local/share/omarchy/default/bash/rc
 
+# Add user's private bin to PATH
+export PATH="$HOME/.local/bin:$PATH
+
 # VPN configs
 source ~/vpn/.vpnrc
 
@@ -24,9 +27,10 @@ mmm() {
 }
 
 gt() {
-    cd /home/char/gatech/ml4t/ || return
     conda activate ml4t
-    nvim /home/char/gatech/ml4t/
+    cd /home/char/gatech/ml4t/ || return
+    echo "Moved to $(pwd) directory and activated ml4t conda environment."
+
 }
 
 grade() {
