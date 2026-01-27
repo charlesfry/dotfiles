@@ -5,7 +5,7 @@
 source ~/.local/share/omarchy/default/bash/rc
 
 # Add user's private bin to PATH
-export PATH="$HOME/.local/bin:$PATH
+export PATH="$HOME/.local/bin:$PATH"
 
 # VPN configs
 source ~/vpn/.vpnrc
