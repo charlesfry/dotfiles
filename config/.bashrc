@@ -39,6 +39,16 @@ grade() {
     PYTHONPATH="$HOME/gatech/ml4t" python grade_analysis.py
 }
 
+dotfiles() {
+  cd /home/char/dotfiles/ || return
+  /home/char/dotfiles/setup.sh
+  cd - || return
+}
+
+empty-trash() {
+  rm -rf $HOME/.local/share/Trash/*
+}
+
 # Conda only for interactive shells
 if [ -n "$PS1" ] && [ -f /home/char/miniforge3/etc/profile.d/conda.sh ]; then
     . /home/char/miniforge3/etc/profile.d/conda.sh
