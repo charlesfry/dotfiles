@@ -1,6 +1,9 @@
 # If not running interactively, don't do anything (leave this at the top of this file)
 [[ $- != *i* ]] && return
 
+# if sudo always results in an incorrect password, the following can fix this issue:
+# omarchy-reset-sudo
+
 # All the default Omarchy aliases and functions
 source ~/.local/share/omarchy/default/bash/rc
 

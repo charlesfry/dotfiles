@@ -46,3 +46,6 @@ echo "Reloading to apply all changes..."
 echo "🎨 installing themes..."
 "$SCRIPTS/themes.sh"
 
+# Post install security hardening
+"$SCRIPTS/post-install-security.sh"
+

@@ -40,12 +40,13 @@ for ovpn_file in "$HOME/vpn/"*.ovpn; do
       fi
       first_letters_seen[$first_letter]=1  # mark this letter as seen
       alias_name="v$first_letter" # alias like 'vd'
-      echo "alias $alias_name='openvpn \"$HOME/vpn/$vpn_name.ovpn\"'" >> "$VPN_RC"
+      echo "alias $alias_name='$HOME/vpn/run-vpn.sh \"$HOME/vpn/$vpn_name.ovpn\"'" >> "$VPN_RC"
     fi
 done
 
+# used to work. removing for now.
 # add rootless command
-echo "alias openvpn-rootless='sudo setcap cap_net_admin+ep $(which openvpn)'" >> "$VPN_RC"
+# echo "alias openvpn-rootless='sudo setcap cap_net_admin+ep $(which openvpn)'" >> "$VPN_RC"
 
 echo "Aliases added to $VPN_RC."
 
