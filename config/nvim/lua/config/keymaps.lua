@@ -1,8 +1,7 @@
 -- Keymaps are automatically loaded on the VeryLazy event
 -- Default keymaps that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/keymaps.lua
--- Add any additional keymaps here
 
--- Map jk to escape in insert, command, visual, and terminal modes
+-- Map :l to escape in insert, command, visual, and terminal modes
 vim.keymap.set("i", ";l", "<Esc>")
 vim.keymap.set("c", ";l", "<Esc>")
 vim.keymap.set("v", ";l", "<Esc>")
@@ -17,14 +16,10 @@ vim.keymap.set("n", ";L", "<Esc>")
 vim.keymap.set("i", ";a", "->")
 vim.keymap.set("i", ";A", "->")
 
--- map Meta p to paste in insert mode
-vim.keymap.set("n", "<M-p>", "<C-r>+")
-vim.keymap.set("i", "<M-p>", "<C-r>+")
-vim.keymap.set("i", "<C-S-v>", "<C-r>+")
-
 -- Misc
+-- <leader>ts is used by onedark to toggle the theme
 vim.keymap.set("n", "<leader>dl", "d$")
-
+vim.keymap.set("n", "<leader>tw", ":.,$s/\\s\\+$//e<CR><CR>", { desc = "Trim trailing whitespace from current line to end of file" })
 vim.keymap.set("n", "<leader>pi", function()
   -- get current line
   local line_nr = vim.api.nvim_win_get_cursor(0)[1]
@@ -35,5 +30,4 @@ vim.keymap.set("n", "<leader>pi", function()
     vim.api.nvim_buf_set_lines(0, line_nr - 1, line_nr, false, { line .. "  # pyright: ignore" })
   end
 end, { silent = true, desc = "Append # pyright: ignore to current line" })
-
 

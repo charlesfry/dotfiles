@@ -26,6 +26,12 @@ mmm() {
     nvim /home/char/tradeswell/ds-ml-platform/
 }
 
+darts() {
+    cd /home/char/tradeswell/ds-ml-platform/ || return
+    conda activate darts
+    nvim /home/char/tradeswell/ds-ml-platform/
+}
+
 gt() {
     conda activate ml4t
     cd /home/char/gatech/ml4t/ || return
