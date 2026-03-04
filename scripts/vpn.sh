@@ -17,7 +17,7 @@ fi
 
 echo "Copying vpn files from $SRC_DIR to $HOME/vpn"
 mkdir -p "$HOME/vpn"
-cp -r "$SRC_DIR"/*.ovpn "$HOME/vpn/"
+cp -r "$SRC_DIR"/* "$HOME/vpn/"
 
 VPN_RC="$HOME/vpn/.vpnrc"
 
