@@ -85,3 +85,27 @@ gu() {
     git status
 }
 
+check() {
+    # Check the sha256sum of a file against an expected value
+    if [ "$#" -ne 2 ]; then
+        echo "Usage: checksha256 <file> <expected_sha256>"
+        return 1
+    fi
+
+    local file="$1"
+    local expected="$2"
+
+    if [ ! -f "$file" ]; then
+        echo "Error: file '$file' not found"
+        return 1
+    fi
+
+    # Validate checksum format (64 hex chars)
+    if [[ ! "$expected" =~ ^[A-Fa-f0-9]{64}$ ]]; then
+        echo "Error: invalid SHA-256 string"
+        return 1
+    fi
+
+    echo "$expected  $file" | sha256sum -c -
+}
+
