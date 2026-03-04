@@ -3,6 +3,8 @@
 /config/hypr/scripts/bluetooth
 *.ovpn
 
-# do not include monitor configuration, as it is specific to the machine
-monitors.conf
+# machine-specific overrides live in customs/ — ignore everything except examples
+/customs/**
+!/customs/**/
+!/customs/**/*.example
 

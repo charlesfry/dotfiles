@@ -71,11 +71,16 @@ for cfg in "${CONFIGS[@]}"; do
 done
 
 
-### CUSTOM MONITORS OVERRIDE ###
-CUSTOM_MONITORS="$ROOT_DIR/config/hypr/custom-monitors.conf"
-if [[ -f "$CUSTOM_MONITORS" ]]; then
-  echo "🖥️  Applying custom monitors config..."
-  cp "$CUSTOM_MONITORS" "$CONFIG_DIR/hypr/monitors.conf"
+### CUSTOM OVERRIDES ###
+CUSTOMS_DIR="$ROOT_DIR/customs"
+if [[ -d "$CUSTOMS_DIR" ]]; then
+  while IFS= read -r -d '' file; do
+    relative="${file#$CUSTOMS_DIR/}"
+    dest="$CONFIG_DIR/$relative"
+    mkdir -p "$(dirname "$dest")"
+    echo "🖥️  Applying custom override: $relative"
+    cp "$file" "$dest"
+  done < <(find "$CUSTOMS_DIR" -type f ! -name "*.example" -print0)
 fi
 
 
