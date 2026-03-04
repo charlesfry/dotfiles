@@ -71,6 +71,14 @@ for cfg in "${CONFIGS[@]}"; do
 done
 
 
+### CUSTOM MONITORS OVERRIDE ###
+CUSTOM_MONITORS="$ROOT_DIR/config/hypr/custom-monitors.conf"
+if [[ -f "$CUSTOM_MONITORS" ]]; then
+  echo "🖥️  Applying custom monitors config..."
+  cp "$CUSTOM_MONITORS" "$CONFIG_DIR/hypr/monitors.conf"
+fi
+
+
 echo
 echo "✅ Done."
 echo "🕒 Backup saved at: $BACKUP_DIR"
