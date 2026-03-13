@@ -6,6 +6,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"  # ../ from install/
 
 # List of packages to install
 PACKAGES=(
+    wget
     bitwarden
 )
 
