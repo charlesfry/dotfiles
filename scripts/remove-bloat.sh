@@ -34,6 +34,7 @@ is_package_installed() {
 # Function to remove webapps
 remove_webapps() {
     for webapp in "${WEBAPPS[@]}"; do
+        echo "Removing $webapp..."
         if is_webapp_installed "$webapp"; then
             if gum spin --spinner dot --title "Removing $webapp..." -- bash -c "omarchy-webapp-remove '$webapp' >/dev/null 2>&1"; then
                 success "removed: $webapp"
@@ -57,8 +58,6 @@ remove_packages() {
     done
 }
 
-# Function to remove both webapps and packages
-remove_all() {
-    remove_webapps
-    remove_packages
-}
+remove_webapps
+# remove_packages
+
