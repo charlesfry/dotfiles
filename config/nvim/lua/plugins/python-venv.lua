@@ -10,17 +10,19 @@ return {
     keys = {
       { "<leader>cv", "<cmd>VenvSelect<cr>", desc = "Select VirtualEnv" },
     },
+    -- Custom searches go under `opts.search` (top level) and are MERGED with the
+    -- built-ins. The built-in conda searches only look in ~/miniconda3 and
+    -- ~/anaconda3 — neither exists here — so add Miniforge equivalents. Format
+    -- mirrors the plugin's defaults: `$FD` is substituted with the fd binary.
     opts = {
-      settings = {
-        search = {
-          miniforge_envs = {
-            command = "fd 'bin/python$' ~/miniforge3/envs --full-path --color never -E /proc",
-            type = "anaconda",
-          },
-          miniforge_base = {
-            command = "fd '/python$' ~/miniforge3/bin --full-path --color never -E /proc",
-            type = "anaconda",
-          },
+      search = {
+        miniforge_envs = {
+          command = "$FD 'bin/python$' ~/miniforge3/envs --no-ignore-vcs --full-path --color never",
+          type = "anaconda",
+        },
+        miniforge_base = {
+          command = "$FD '/python$' ~/miniforge3/bin --no-ignore-vcs --full-path --color never",
+          type = "anaconda",
         },
       },
     },
