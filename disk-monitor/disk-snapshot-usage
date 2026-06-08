@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# disk-snapshot-usage — print snapper snapshot count and total reclaimable
+# (exclusive) space, in bytes. READ-ONLY: it inspects, never modifies.
+#
+# Installed root-owned at /usr/local/sbin/disk-snapshot-usage and invoked via
+# passwordless sudo by ~/.local/bin/disk-usage-alert (whitelisted in
+# /etc/sudoers.d/disk-usage-alert). Keep it minimal — it runs as root.
+#
+# Sums the Exclusive bytes of every snapshot subvolume qgroup (path matches
+# .snapshots/<n>/snapshot), i.e. the space reclaimed if you deleted them all.
+# Requires btrfs quota:  sudo btrfs quota enable /
+set -uo pipefail
+
+btrfs qgroup show -p --raw / 2>/dev/null | awk '
+  $0 ~ /\.snapshots\/[0-9]+\/snapshot/ { excl += $3; n++ }
+  END { printf "count=%d\nexcl=%d\n", n + 0, excl + 0 }
+'

@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+# disk-usage-alert — cheap check of / usage; if over THRESHOLD, gather
+# diagnostics and fire a critical desktop notification naming the culprits, so
+# the alert itself tells you what to fix. Run by disk-usage-alert.timer (every
+# 4h) or manually via `diskcheck`. Override threshold with DISK_THRESHOLD.
+#
+# Runs non-interactively from a systemd *user* timer: it has the desktop
+# session (for notify-send) but NOT root. Snapshot space is the only diagnostic
+# needing root, so it is delegated to a tiny read-only helper invoked via
+# passwordless sudo: /usr/local/sbin/disk-snapshot-usage (whitelisted in
+# /etc/sudoers.d/disk-usage-alert). Everything else is readable as the user.
+# Full remediation notes: the 'break glass' block in ~/.bashrc.
+set -uo pipefail
+
+THRESHOLD=${DISK_THRESHOLD:-85}
+
+# --- Cheap check: single df call on the root filesystem ---------------------
+read -r _src _size used avail use _mnt < <(df -B1 / 2>/dev/null | tail -1)
+usepct=${use//[!0-9]/}
+[[ -z "$usepct" ]] && exit 0
+((usepct <= THRESHOLD)) && exit 0   # healthy -> do nothing expensive
+
+hum() { numfmt --to=iec --suffix=B "${1:-0}" 2>/dev/null || echo "${1:-0}B"; }
+
+# Convert a docker size string ("175.2GB" / "40.76GiB" / "0B") to bytes.
+to_bytes() {
+  awk -v s="$1" 'BEGIN{
+    if (!match(s, /^[0-9.]+/)) { print 0; exit }
+    n=substr(s,RSTART,RLENGTH); u=substr(s,RSTART+RLENGTH); gsub(/[^A-Za-z]/,"",u)
+    f=1
+    if(u=="kB"||u=="KB")f=1e3; else if(u=="MB")f=1e6; else if(u=="GB")f=1e9; else if(u=="TB")f=1e12
+    else if(u=="KiB")f=1024; else if(u=="MiB")f=1048576; else if(u=="GiB")f=1073741824; else if(u=="TiB")f=1099511627776
+    printf "%.0f", n*f
+  }'
+}
+
+# --- Over threshold: gather diagnostics -------------------------------------
+diag="💽 $(hum "$used") used, $(hum "$avail") free"$'\n'
+
+# Docker — aggregated to single size/reclaimable totals (no sudo; docker group).
+if command -v docker >/dev/null 2>&1 && timeout 5 docker info >/dev/null 2>&1; then
+  dsize=0; drecl=0
+  while IFS=';' read -r sz rec; do
+    [[ -z "$sz" ]] && continue
+    dsize=$((dsize + $(to_bytes "$sz")))
+    drecl=$((drecl + $(to_bytes "${rec%% *}")))   # strip "(69%)" suffix
+  done < <(timeout 10 docker system df --format '{{.Size}};{{.Reclaimable}}' 2>/dev/null)
+  diag+="🐳 docker $(hum "$dsize") (recl $(hum "$drecl"))"$'\n'
+fi
+
+# Snapshots — needs root. Prefer values passed in by `diskcheck` (gathered
+# interactively); else the whitelisted read-only helper (for the background
+# timer, via passwordless sudo).
+snap=""
+if [[ -n "${SNAPSHOT_EXCL:-}" ]]; then
+  snap="$(hum "$SNAPSHOT_EXCL") excl, ${SNAPSHOT_COUNT:-?} snaps"
+elif out=$(sudo -n /usr/local/sbin/disk-snapshot-usage 2>/dev/null); then
+  cnt=$(sed -n 's/^count=//p' <<<"$out")
+  exb=$(sed -n 's/^excl=//p' <<<"$out")
+  [[ -n "$exb" ]] && snap="$(hum "$exb") excl, ${cnt:-?} snaps"
+fi
+[[ -z "$snap" ]] && snap="(install helper — see break glass)"
+diag+="📸 snapshots ${snap}"$'\n'
+
+# System caches/logs (readable as user).
+pac=$(timeout 10 du -sh /var/cache/pacman/pkg 2>/dev/null | cut -f1)
+vlog=$(timeout 10 du -sh /var/log 2>/dev/null | cut -f1)
+jrn=$(journalctl --disk-usage 2>/dev/null | grep -oE '[0-9.]+[KMGT]i?B?' | tail -1)
+diag+="🗄 var/log ${vlog:-?} · pacman ${pac:-?} · journal ${jrn:-?}"$'\n'
+
+# Biggest top-level dirs in $HOME (skip line 1, the $HOME total).
+big=$(timeout 20 du -xhd1 "$HOME" 2>/dev/null | sort -rh | sed -n '2,4p' \
+      | awk '{printf "%s %s  ", $1, $2}')
+[[ -n "$big" ]] && diag+="🏠 ${big}"$'\n'
+
+diag+="Fixes: 'break glass' in ~/.bashrc"
+
+notify-send -u critical -a "disk-monitor" -i drive-harddisk -t 0 \
+  "⚠️ Disk ${usepct}% full on /" "$diag"
+paplay /usr/share/sounds/freedesktop/stereo/dialog-warning.oga 2>/dev/null || true

@@ -38,6 +38,16 @@ echo "📋 copying configuration files..."
 "$SCRIPTS/copy-confs.sh"
 echo
 
+# Install the disk-usage monitor (timer + alert + snapshot helper).
+echo "💽 installing disk-usage monitor..."
+"$SCRIPTS/disk-monitor.sh"
+echo
+
+# Exclude /var/lib/docker from btrfs snapshots (idempotent; skips if already done).
+echo "🐳 ensuring docker is on its own btrfs subvolume..."
+"$SCRIPTS/docker-subvolume.sh"
+echo
+
 # Reload to apply changes. Do this after everything else.
 echo "Reloading to apply all changes..."
 "$SCRIPTS/reload.sh"

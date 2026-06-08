@@ -1,0 +1,6 @@
+[Unit]
+Description=Check disk usage and alert if above threshold
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/disk-usage-alert

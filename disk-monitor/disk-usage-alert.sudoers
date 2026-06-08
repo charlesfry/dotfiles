@@ -1,0 +1,4 @@
+# Allow disk-usage-alert to read snapshot space without a password.
+# Scope: exactly one read-only, root-owned helper. Install to
+# /etc/sudoers.d/disk-usage-alert (mode 0440), then validate with `visudo -c`.
+char ALL=(root) NOPASSWD: /usr/local/sbin/disk-snapshot-usage
