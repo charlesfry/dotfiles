@@ -12,6 +12,8 @@ PACKAGES=(
     ncdu                # interactive disk-usage hunting
     rsync               # docker-subvolume migration
     direnv              # per-directory env loading — hooked in .bashrc
+    fd                  # fast file finder — used by nvim venv-selector
+    imagemagick         # `magick` CLI — used by nvim image.nvim (inline plots)
 )
 
 echo "🔧 Installing packages..."

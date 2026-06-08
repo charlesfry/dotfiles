@@ -84,6 +84,16 @@ A self-contained subsystem (`disk-monitor/`, `scripts/disk-monitor.sh`,
   frees nothing while old snapshots still pin them. See `disk-monitor/README.md`
   and the deployed `~/disk-space-fixes.md` playbook.
 
+## Neovim (`config/nvim/`)
+
+LazyVim-based; plugin specs in `lua/plugins/`. On top of LazyVim it adds a
+data-science layer (Claude Code, IPython REPL, molten/jupytext Jupyter stack,
+venv-selector tuned for `~/miniforge3/envs`, dadbod SQL, csvview, neotest).
+The Jupyter stack has Python-side prerequisites installed by
+`scripts/neovim-deps.sh` (a conda-independent provider venv at `~/.venvs/neovim`,
+which `options.lua` only uses when present). See `config/nvim/README.md` for the
+full plugin/keymap map and the inline-image terminal caveat (kitty/ghostty only).
+
 ## VPN (`scripts/vpn.sh`)
 
 Copies `vpn/*.ovpn` (gitignored) to `~/vpn/` and generates `~/vpn/.vpnrc` with

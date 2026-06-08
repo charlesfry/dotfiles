@@ -48,6 +48,11 @@ echo "🧑 personalization..."
 "$SCRIPTS/personalize.sh"
 echo
 
+# Neovim data-science Python host (molten/jupytext). Best-effort; never aborts.
+echo "🧠 setting up neovim data-science deps..."
+"$SCRIPTS/neovim-deps.sh"
+echo
+
 # Install the disk-usage monitor (timer + alert + snapshot helper).
 echo "💽 installing disk-usage monitor..."
 "$SCRIPTS/disk-monitor.sh"
