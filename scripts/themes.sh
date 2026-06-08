@@ -91,10 +91,11 @@ esac
 echo "Installing custom themes from repo..."
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"  # ../ from install/ to repo root
 SRC_DIR="$ROOT_DIR/themes"
-cp -r SRC_DIR/* "$HOME/.config/omarchy/themes/"
+mkdir -p "$HOME/.config/omarchy/themes/"
+cp -r "$SRC_DIR"/* "$HOME/.config/omarchy/themes/"
 
 # Switch back to the original theme
-if [ omachy-theme-current != "$CURRENT_THEME" ]; then
+if [ "$(omarchy-theme-current)" != "$CURRENT_THEME" ]; then
   echo "Switching from new theme $(omarchy-theme-current) back to $CURRENT_THEME"
   omarchy-theme-set "$CURRENT_THEME"
 fi

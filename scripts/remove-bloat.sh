@@ -3,6 +3,11 @@
 # Helper functions to remove some of the pre-installed packages/apps/webapps
 #
 # Based on https://github.com/maxart/omarchy-cleaner
+
+# This script runs standalone (it does not source Omarchy's bash rc), so define
+# the tiny status helpers it relies on rather than inheriting them.
+success() { echo "✅ $*"; }
+error()   { echo "❌ $*" >&2; }
 APPS=(
     "xournalpp"
 )
@@ -50,7 +55,7 @@ remove_packages() {
     for pkg in "${APPS[@]}"; do
         if is_package_installed "$pkg"; then
             if gum spin --spinner dot --title "Removing $pkg..." -- bash -c "sudo pacman -Rns --noconfirm '$pkg' 2>/dev/null"; then
-                success "removed: $pkd"
+                success "removed: $pkg"
             else
                 error "deletion of $pkg failed"
             fi

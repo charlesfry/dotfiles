@@ -11,6 +11,7 @@ PACKAGES=(
     pacman-contrib      # paccache — used by emergency-clean / disk notes
     ncdu                # interactive disk-usage hunting
     rsync               # docker-subvolume migration
+    direnv              # per-directory env loading — hooked in .bashrc
 )
 
 echo "🔧 Installing packages..."
