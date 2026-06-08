@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 
 ### CONFIG ###
-CONFIGS=(alacritty bashrc hypr nvim shell waybar)
+CONFIGS=(alacritty bashrc hypr nvim waybar)
 CONFIG_DIR="$HOME/.config"
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"  # ../ from install/ to repo root

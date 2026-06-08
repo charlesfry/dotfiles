@@ -85,4 +85,21 @@ backup/             Timestamped backups of replaced configs (gitignored)
 - **Secrets** stay out of the repo: `.ovpn` files, `backup/`, and `.env`
   (see `.env.default`) are gitignored.
 
+## Not reproduced automatically
+
+A few things are intentionally left as manual steps (machine-specific or secret):
+
+- **Secrets / VPN** — add your `*.ovpn` profiles to `vpn/` before running (they're
+  gitignored). `.env` (see `.env.default`) is currently unused by any script.
+- **Conda environments** — `setup.sh` installs Miniforge but creates no envs.
+  Create them yourself; for the Neovim REPL/Jupyter stack, an env needs
+  `ipython` (iron) and a registered kernel: `pip install ipython ipykernel &&
+  python -m ipykernel install --user --name <env>`.
+- **Claude Code in Neovim** — the `claudecode.nvim` plugin needs the `claude`
+  CLI on `PATH` (install separately).
+- **Per-machine monitor layout** — copy `customs/hypr/monitors.conf.example` to
+  `customs/hypr/monitors.conf` and edit.
+- **Inline notebook plots** — render only in kitty/ghostty, not alacritty (see
+  [`config/nvim/README.md`](config/nvim/README.md)).
+
 For architecture and conventions when modifying the repo, see [`CLAUDE.md`](CLAUDE.md).

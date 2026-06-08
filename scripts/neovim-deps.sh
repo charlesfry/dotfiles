@@ -35,7 +35,17 @@ if [[ -x "$VENV/bin/jupytext" ]]; then
   echo "  ✅ linked jupytext into ~/.local/bin"
 fi
 
-# 3. Regenerate molten's remote-plugin manifest if molten is already installed.
+# 3. Install Neovim plugins headlessly so the editor is ready right after setup
+#    (otherwise they install on first launch, and molten needs a restart). First
+#    run clones ~60 repos + Mason tools, so it can take a few minutes.
+if command -v nvim >/dev/null 2>&1; then
+  echo "  Installing Neovim plugins (headless Lazy sync)..."
+  timeout 600 nvim --headless "+Lazy! sync" +qa >/dev/null 2>&1 \
+    && echo "  ✅ plugins installed." \
+    || echo "  ⚠️  Lazy sync timed out/failed — it'll finish on first nvim launch."
+fi
+
+# 4. Regenerate molten's remote-plugin manifest if molten is now installed.
 #    Molten's commands only register when it's on the runtimepath as the manifest
 #    is generated; force-load it first. (No-op on first setup — molten is cloned
 #    by lazy on first nvim launch; re-run this script afterwards if needed.)
