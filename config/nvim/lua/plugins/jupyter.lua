@@ -61,27 +61,32 @@ return {
   {
     "benlubas/molten-nvim",
     version = "^1.0.0",
-    ft = { "python", "markdown" },
-    cmd = { "MoltenInit" },
     build = ":UpdateRemotePlugins",
+    -- Molten is a *remote* (python-host) plugin: its commands come from the
+    -- generated rplugin manifest at startup, and the host starts lazily on first
+    -- use. Do NOT use cmd/ft/keys load-triggers — when lazy lazy-loads the
+    -- plugin it deletes its command stubs, which removes the manifest-provided
+    -- commands and leaves "Not an editor command". So load it eagerly (cheap, no
+    -- lua to run) and map keys in init().
+    lazy = false,
     init = function()
       vim.g.molten_image_provider = image_terminal() and "image.nvim" or "none"
       vim.g.molten_output_win_max_height = 20
       vim.g.molten_auto_open_output = false
       vim.g.molten_virt_text_output = true
       vim.g.molten_wrap_output = true
+
+      local map = vim.keymap.set
+      map("n", "<leader>ji", "<cmd>MoltenInit<cr>", { desc = "Molten: init kernel" })
+      map("n", "<leader>jj", run_current_cell, { desc = "Molten: run current cell" })
+      map("n", "<leader>ja", run_all_cells, { desc = "Molten: run all cells" })
+      map("n", "<leader>jl", "<cmd>MoltenEvaluateLine<cr>", { desc = "Molten: eval line" })
+      map("n", "<leader>jc", "<cmd>MoltenReevaluateCell<cr>", { desc = "Molten: re-eval cell" })
+      map("v", "<leader>je", ":<C-u>MoltenEvaluateVisual<cr>gv", { desc = "Molten: eval selection" })
+      map("n", "<leader>jo", "<cmd>MoltenShowOutput<cr>", { desc = "Molten: show output" })
+      map("n", "<leader>jh", "<cmd>MoltenHideOutput<cr>", { desc = "Molten: hide output" })
+      map("n", "<leader>jd", "<cmd>MoltenDelete<cr>", { desc = "Molten: delete cell" })
     end,
-    keys = {
-      { "<leader>ji", "<cmd>MoltenInit<cr>", desc = "Molten: init kernel" },
-      { "<leader>jj", run_current_cell, desc = "Molten: run current cell" },
-      { "<leader>ja", run_all_cells, desc = "Molten: run all cells" },
-      { "<leader>jl", "<cmd>MoltenEvaluateLine<cr>", desc = "Molten: eval line" },
-      { "<leader>jc", "<cmd>MoltenReevaluateCell<cr>", desc = "Molten: re-eval cell" },
-      { "<leader>je", ":<C-u>MoltenEvaluateVisual<cr>gv", mode = "v", desc = "Molten: eval selection" },
-      { "<leader>jo", "<cmd>MoltenShowOutput<cr>", desc = "Molten: show output" },
-      { "<leader>jh", "<cmd>MoltenHideOutput<cr>", desc = "Molten: hide output" },
-      { "<leader>jd", "<cmd>MoltenDelete<cr>", desc = "Molten: delete cell" },
-    },
   },
   {
     "GCBallesteros/jupytext.nvim",

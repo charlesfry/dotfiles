@@ -44,3 +44,8 @@ python -m ipykernel install --user --name <env>
 In Neovim run `:MoltenInit` and pick the kernel. **Inline images require the
 kitty graphics protocol** — use kitty or ghostty; alacritty can't display them
 (everything else still works, plots just won't render inline).
+
+> Molten is a *remote* (python-host) plugin, so it's loaded eagerly (`lazy = false`)
+> rather than via `cmd`/`ft`/`keys` — lazy-loading deletes the manifest-provided
+> commands and breaks `:Molten*`. If commands ever go missing (e.g. after an
+> update), run `:UpdateRemotePlugins` and restart, or re-run `scripts/neovim-deps.sh`.

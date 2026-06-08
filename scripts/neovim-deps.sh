@@ -35,6 +35,19 @@ if [[ -x "$VENV/bin/jupytext" ]]; then
   echo "  ✅ linked jupytext into ~/.local/bin"
 fi
 
+# 3. Regenerate molten's remote-plugin manifest if molten is already installed.
+#    Molten's commands only register when it's on the runtimepath as the manifest
+#    is generated; force-load it first. (No-op on first setup — molten is cloned
+#    by lazy on first nvim launch; re-run this script afterwards if needed.)
+if command -v nvim >/dev/null 2>&1 && [[ -d "$HOME/.local/share/nvim/lazy/molten-nvim" ]]; then
+  echo "  Regenerating molten remote-plugin manifest..."
+  nvim --headless \
+    -c "lua pcall(function() require('lazy').load({ plugins = { 'molten-nvim' } }) end)" \
+    -c "silent! UpdateRemotePlugins" -c "qa" >/dev/null 2>&1 \
+    && echo "  ✅ molten manifest regenerated." \
+    || echo "  ⚠️  manifest regen failed — open nvim and run :UpdateRemotePlugins, then restart."
+fi
+
 cat <<'EOF'
 
   NEXT STEPS (manual — they depend on your conda envs):
