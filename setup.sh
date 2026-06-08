@@ -38,6 +38,16 @@ echo "📋 copying configuration files..."
 "$SCRIPTS/copy-confs.sh"
 echo
 
+# Apply global git config (aliases, rebase-pull, rerere, nicer diffs).
+echo "🔧 applying git config..."
+"$SCRIPTS/git-config.sh"
+echo
+
+# Optional Charles-specific personalization (git identity + work shell funcs).
+echo "🧑 personalization..."
+"$SCRIPTS/personalize.sh"
+echo
+
 # Install the disk-usage monitor (timer + alert + snapshot helper).
 echo "💽 installing disk-usage monitor..."
 "$SCRIPTS/disk-monitor.sh"

@@ -16,38 +16,6 @@ export PATH="$HOME/.local/bin:$PATH"
 alias vim='nvim'
 alias vi='nvim'
 
-ds() {
-    cd /home/char/tradeswell/ds-ml-platform/ || return
-    conda activate ds-ml-platform
-    current_branch=$(git rev-parse --abbrev-ref HEAD)
-    echo "On branch: $current_branch"
-}
-
-mmm() {
-    cd /home/char/tradeswell/ds-ml-platform/ || return
-    conda activate mmm
-    nvim /home/char/tradeswell/ds-ml-platform/
-}
-
-darts() {
-    cd /home/char/tradeswell/ds-ml-platform/ || return
-    conda activate darts
-    nvim /home/char/tradeswell/ds-ml-platform/
-}
-
-gt() {
-    conda activate gatech-ethics
-    cd /home/char/gatech/gatech-ethics/ || return
-    echo "Moved to $(pwd) directory and activated environment."
-
-}
-
-grade() {
-    cd /home/char/gatech/ml4t/assess_portfolio/ || return
-    conda activate ml4t
-    PYTHONPATH="$HOME/gatech/ml4t" python grade_analysis.py
-}
-
 dotfiles() {
   cd /home/char/dotfiles/ || return
   /home/char/dotfiles/setup.sh
@@ -241,4 +209,8 @@ emergency-clean() {
 }
 
 command -v direnv >/dev/null && eval "$(direnv hook bash)"
+
+# Personal (Charles) work/school functions — installed by scripts/personalize.sh
+# only on a "Charles PC"; absent on a generic install.
+[ -f ~/.bashrc.personal ] && source ~/.bashrc.personal
 

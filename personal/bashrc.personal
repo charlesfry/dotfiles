@@ -1,0 +1,35 @@
+# Personal (Charles) shell functions — work/school specific.
+# Installed to ~/.bashrc.personal by scripts/personalize.sh only when the
+# machine is marked a "Charles PC", and sourced from the end of ~/.bashrc.
+# These assume the corresponding conda envs and repo checkouts exist.
+
+ds() {
+    cd "$HOME/tradeswell/ds-ml-platform/" || return
+    conda activate ds-ml-platform
+    current_branch=$(git rev-parse --abbrev-ref HEAD)
+    echo "On branch: $current_branch"
+}
+
+mmm() {
+    cd "$HOME/tradeswell/ds-ml-platform/" || return
+    conda activate mmm
+    nvim "$HOME/tradeswell/ds-ml-platform/"
+}
+
+darts() {
+    cd "$HOME/tradeswell/ds-ml-platform/" || return
+    conda activate darts
+    nvim "$HOME/tradeswell/ds-ml-platform/"
+}
+
+gt() {
+    conda activate gatech-ethics
+    cd "$HOME/gatech/gatech-ethics/" || return
+    echo "Moved to $(pwd) directory and activated environment."
+}
+
+grade() {
+    cd "$HOME/gatech/ml4t/assess_portfolio/" || return
+    conda activate ml4t
+    PYTHONPATH="$HOME/gatech/ml4t" python grade_analysis.py
+}

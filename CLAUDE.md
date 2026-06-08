@@ -37,6 +37,19 @@ This is the heart of the repo and the key thing to understand before editing:
   overwritten — backups accumulate there and in `backup/vpn-<timestamp>/`.
 - After the main copy, `customs/` is overlaid on top (see below).
 
+## Personalization gate (`scripts/personalize.sh` + `personal/`)
+
+The repo is personal but separates generic setup from Charles-specific bits so a
+plain install stays clean. `setup.sh` runs `scripts/git-config.sh` (generic
+global git settings — aliases, `pull.rebase`, `rerere`, diff tweaks; **no
+identity**) on every machine, then `scripts/personalize.sh`, which prompts
+"Make this a Charles PC?" Answering yes sets the git identity and installs
+`personal/bashrc.personal` → `~/.bashrc.personal` (work/school shell functions
+like `ds`/`mmm`/`darts`/`gt`/`grade`). `config/.bashrc` sources
+`~/.bashrc.personal` only if present, so a generic install simply omits it.
+Set `PERSONALIZE=yes|no` to answer non-interactively. Put new work-specific
+functions in `personal/bashrc.personal`, not `config/.bashrc`.
+
 ## Machine-specific overrides (`customs/`)
 
 `customs/` mirrors the `~/.config` tree and is copied *last*, overwriting the
