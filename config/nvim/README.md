@@ -18,7 +18,7 @@ data-science layer. Plugin specs live in `lua/plugins/`.
 |--------|------|------|
 | `venv-selector` (python extra, tuned in `python-venv.lua`) | pick conda env in `~/miniforge3/envs`; restarts LSP against it | `<leader>cv` |
 | `iron.nvim` (`repl.lua`) | send code to an IPython REPL split | `<leader>r` group (`rr` toggle, `rl` line, `rc` motion/visual, `rf` file, `ru` to-cursor, `rq` quit) |
-| `molten-nvim` (`jupyter.lua`) | run cells against a Jupyter kernel | `<leader>j` group (`ji` init, `jl` line, `jc` cell, `je` selection, `jo`/`jh` show/hide, `jd` delete) |
+| `molten-nvim` (`jupyter.lua`) | run cells against a Jupyter kernel | `<leader>j` group (`ji` init, **`jj` run current cell**, `ja` run all cells, `jl` line, `je` selection, `jc` re-eval cell, `jo`/`jh` show/hide, `jd` delete) |
 | `jupytext.nvim` | edit `.ipynb` as markdown | automatic on open |
 | `image.nvim` | inline plots — **kitty/ghostty only** | automatic |
 | `csvview.nvim` (`data.lua`) | aligned CSV/TSV columns | `<leader>uV` |
