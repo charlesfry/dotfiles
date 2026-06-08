@@ -33,8 +33,24 @@ if [ -n "$PS1" ] && [ -f /home/char/miniforge3/etc/profile.d/conda.sh ]; then
 fi
 
 
+# Resolve the repo's default branch (handles main vs master). Prefers the
+# remote's HEAD; falls back to whichever of main/master exists locally.
+_git_default_branch() {
+    local def
+    def=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null)
+    if [ -n "$def" ]; then
+        echo "${def#origin/}"
+    elif git show-ref --verify --quiet refs/heads/main; then
+        echo main
+    else
+        echo master
+    fi
+}
+
 gu() {
     current_branch=$(git rev-parse --abbrev-ref HEAD)
+    local default_branch
+    default_branch=$(_git_default_branch)
 
     # Check for changes (including untracked) and stash if any
     STASHED=0
@@ -43,7 +59,7 @@ gu() {
         STASHED=1
     fi
 
-    git checkout main
+    git checkout "$default_branch"
     git pull
     git checkout "$current_branch"
 
@@ -56,7 +72,7 @@ gu() {
 
 gur() {
   gu
-  git rebase main
+  git rebase "$(_git_default_branch)"
 }
 
 check() {
