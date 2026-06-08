@@ -8,6 +8,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"  # ../ from install/
 PACKAGES=(
     wget
     bitwarden
+    openvpn             # required by the VPN aliases vpn.sh generates
     pacman-contrib      # paccache — used by emergency-clean / disk notes
     ncdu                # interactive disk-usage hunting
     rsync               # docker-subvolume migration
