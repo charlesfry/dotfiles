@@ -5,6 +5,11 @@
 return {
   {
     "linux-cultist/venv-selector.nvim",
+    -- The python extra only maps <leader>cv for ft=python. Add a global one so
+    -- it also works in jupytext notebooks (ft=markdown) and other buffers.
+    keys = {
+      { "<leader>cv", "<cmd>VenvSelect<cr>", desc = "Select VirtualEnv" },
+    },
     opts = {
       settings = {
         search = {
