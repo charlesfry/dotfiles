@@ -25,7 +25,7 @@ darts() {
 gt() {
     conda activate gatech-ethics
     cd "$HOME/gatech/gatech-ethics/" || return
-    echo "Moved to $(pwd) directory and activated environment."
+    echo "Moved to $(pwd) directory and activated environment: `$CONDA_PREFIX`"
 }
 
 grade() {

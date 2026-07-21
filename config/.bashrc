@@ -105,6 +105,67 @@ emergency() {
   sudo rm /var/reserved-space.img
 }
 
+# Prints "== label ==" as a section header (used by diagnose/diagnose_snapshots).
+_hr() { echo -e "\n== $* ==\n"; }
+
+diagnose() {
+  _hr "df -h /"
+  df -h /
+  _hr "btrfs filesystem usage /"
+  sudo btrfs filesystem usage /
+  _hr "btrfs filesystem df / (allocated vs used — explains df/du mismatches)"
+  sudo btrfs filesystem df /
+  _hr "biggest dirs on /"
+  sudo du -xhd1 / 2>/dev/null | sort -h | tail
+  _hr "biggest dirs in ~"
+  du -xhd1 ~ 2>/dev/null | sort -h | tail
+  _hr "biggest individual files on / (>200M)"
+  sudo find / -xdev -type f -size +200M -exec du -h {} \; 2>/dev/null | sort -rh | head -20
+  if command -v docker >/dev/null && docker info >/dev/null 2>&1; then
+    _hr "docker usage (RECLAIMABLE column = safe to prune)"
+    docker system df -v
+  fi
+  _hr "ncdu /"
+  sudo ncdu -x /
+}
+
+diagnose_snapshots() {
+  _hr "snapper -c root list"
+  sudo snapper -c root list
+  _hr "btrfs quota enable /"
+  sudo btrfs quota enable /
+  _hr "btrfs quota rescan -w /"
+  sudo btrfs quota rescan -w /
+  _hr "btrfs qgroup show -p --raw / (sorted by exclusive size)"
+  sudo btrfs qgroup show -p --raw / | sort -k3 -h
+  _hr "cleanup"
+  echo "use sudo snapper -c root delete <num1> <num2> ... to delete snapshots"
+}
+
+# Read-only sizes of everything emergency-clean is about to wipe, so you know
+# what's reclaimable before running it. Docker gets the most detail since
+# images are usually the biggest offender.
+disk_hogs() {
+  _hr "docker"
+  if command -v docker >/dev/null && docker info >/dev/null 2>&1; then
+    docker system df
+    echo ""
+    echo "biggest images:"
+    docker image ls --format '{{.Size}}\t{{.Repository}}:{{.Tag}}' | sort -rh | head -10
+  else
+    echo "not running"
+  fi
+  _hr "conda pkg cache"
+  command -v conda >/dev/null && du -sh ~/miniforge3/pkgs 2>/dev/null
+  _hr "~/.cache"
+  du -sh ~/.cache 2>/dev/null
+  _hr "pacman package cache"
+  du -sh /var/cache/pacman/pkg 2>/dev/null
+  _hr "systemd journal"
+  journalctl --disk-usage
+}
+
+
 # ┌─────────────────────────────────────────────────────────────────────────┐
 # │ IN CASE OF EMERGENCY, BREAK GLASS — DISK SPACE IS FULL                     │
 # ├─────────────────────────────────────────────────────────────────────────┤
@@ -163,62 +224,112 @@ diskcheck() {
     && echo "Done (notification fires only when over ${1:-85}%)."
 }
 
-# In case of disk emergency: reclaim space across the usual offenders and
-# report how much was freed. Interactive (sudo may prompt). AGGRESSIVE — wipes
-# Docker build cache + ALL unused images, conda caches, ~/.cache, the pacman
-# package cache, and old journals, and prunes snapshots to their retention
-# limit. Pass --yes / -y to skip the confirmation.
+# Bytes free on / right now (used by emergency-clean to report freed space).
+_avail_bytes() { df -B1 / | tail -1 | awk '{print $4}'; }
+
+# Prints how much a step just freed, given its "before" byte count from _avail_bytes.
+_report_freed() {
+  local label="$1" before="$2" freed
+  freed=$(( $(_avail_bytes) - before ))
+  echo "   $label freed: $(numfmt --to=iec --suffix=B "$freed" 2>/dev/null || echo "${freed} bytes")"
+}
+
+# Asks "$2 [y/N]"; auto-yeses if $1 (the emergency-clean --yes flag) is 1.
+_confirm() {
+  local auto="$1" prompt="$2" ans
+  [[ "$auto" == 1 ]] && return 0
+  read -rp "$prompt [y/N] " ans
+  [[ "$ans" == [yY]* ]]
+}
+
+# In case of disk emergency: for each offender, show its size, ask y/N, then
+# clean it and report what that step actually freed. Interactive (sudo may
+# prompt). Pass --yes / -y to auto-confirm every step (e.g. from a script).
 emergency-clean() {
-  local before after freed
+  local total_before total_after step_before auto_yes=0
+  [[ "${1:-}" == "--yes" || "${1:-}" == "-y" ]] && auto_yes=1
+
   echo "== Disk before =="
   df -h --output=pcent,used,avail,target /
-  before=$(df -B1 / | tail -1 | awk '{print $4}')
+  total_before=$(_avail_bytes)
 
-  if [[ "${1:-}" != "--yes" && "${1:-}" != "-y" ]]; then
-    read -rp "Wipe Docker images/cache, conda + ~/.cache, pacman cache, old journals, and prune snapshots? [y/N] " ans
-    [[ "$ans" == [yY]* ]] || { echo "Aborted."; return 1; }
-  fi
-
-  # Docker — each step independent so one failure doesn't block the rest.
   if command -v docker >/dev/null && docker info >/dev/null 2>&1; then
-    echo "-> Docker (build cache, unused images, stopped containers)..."
-    docker builder prune -af
-    docker image prune -af
-    docker container prune -f
-    # docker volume prune -f   # DISABLED: deletes unused named volumes = possible DB/data loss. Enable knowingly.
-  else
-    echo "-> Docker not running — skipped."
+    _hr "docker"
+    docker system df
+    echo ""
+    echo "biggest images:"
+    docker image ls --format '{{.Size}}\t{{.Repository}}:{{.Tag}}' | sort -rh | head -10
+    if _confirm "$auto_yes" "Prune docker build cache + unused images + stopped containers?"; then
+      step_before=$(_avail_bytes)
+      docker builder prune -af
+      docker image prune -af
+      docker container prune -f
+      # docker volume prune -f   # DISABLED: deletes unused named volumes = possible DB/data loss. Enable knowingly.
+      _report_freed "Docker" "$step_before"
+    else
+      echo "   skipped"
+    fi
   fi
 
-  # Conda caches (tarballs, unused packages) — keeps your envs intact.
   if command -v conda >/dev/null; then
-    echo "-> Conda caches..."
-    conda clean -afy
+    _hr "conda pkg cache"
+    du -sh ~/miniforge3/pkgs 2>/dev/null
+    if _confirm "$auto_yes" "Clean conda caches (tarballs, unused packages; envs untouched)?"; then
+      step_before=$(_avail_bytes)
+      conda clean -afy
+      _report_freed "Conda" "$step_before"
+    else
+      echo "   skipped"
+    fi
   fi
 
-  # User app cache — rebuilt on demand. Guarded so an unset $HOME can't rm /.
-  echo "-> ~/.cache ..."
-  rm -rf "${HOME:?HOME unset}/.cache/"* 2>/dev/null
+  _hr "~/.cache"
+  du -sh ~/.cache 2>/dev/null
+  if _confirm "$auto_yes" "Wipe ~/.cache (rebuilt on demand)?"; then
+    step_before=$(_avail_bytes)
+    rm -rf "${HOME:?HOME unset}/.cache/"* 2>/dev/null
+    _report_freed "~/.cache" "$step_before"
+  else
+    echo "   skipped"
+  fi
 
-  # Pacman PACKAGE cache (lives on / — this is the real one, not ~/.cache).
-  echo "-> Pacman package cache..."
-  if command -v paccache >/dev/null; then sudo paccache -rk1; else sudo pacman -Sc --noconfirm; fi
+  _hr "pacman package cache"
+  du -sh /var/cache/pacman/pkg 2>/dev/null
+  if _confirm "$auto_yes" "Trim pacman cache (keep 1 version per package)?"; then
+    step_before=$(_avail_bytes)
+    if command -v paccache >/dev/null; then sudo paccache -rk1; else sudo pacman -Sc --noconfirm; fi
+    _report_freed "Pacman cache" "$step_before"
+  else
+    echo "   skipped"
+  fi
 
-  # systemd journal.
-  echo "-> Journal (cap 200M)..."
-  sudo journalctl --vacuum-size=200M
+  _hr "systemd journal"
+  journalctl --disk-usage
+  if _confirm "$auto_yes" "Vacuum journal down to 200M?"; then
+    step_before=$(_avail_bytes)
+    sudo journalctl --vacuum-size=200M
+    _report_freed "Journal" "$step_before"
+  else
+    echo "   skipped"
+  fi
 
-  # Snapshots — prune to retention limit only (safe: keeps recent + rollback).
-  echo "-> Snapshots (prune to retention limit)..."
-  sudo snapper -c root cleanup number || true
-  echo "   Remaining snapshots (Used Space = reclaimable; needs btrfs quota):"
+  _hr "snapshots"
   sudo snapper -c root list
+  if _confirm "$auto_yes" "Prune snapshots to retention limit (keeps recent + rollback)?"; then
+    step_before=$(_avail_bytes)
+    sudo snapper -c root cleanup number || true
+    _report_freed "Snapshots" "$step_before"
+    echo "   Remaining snapshots:"
+    sudo snapper -c root list
+  else
+    echo "   skipped"
+  fi
 
+  echo ""
   echo "== Disk after =="
   df -h --output=pcent,used,avail,target /
-  after=$(df -B1 / | tail -1 | awk '{print $4}')
-  freed=$((after - before))
-  echo "Freed this run: $(numfmt --to=iec --suffix=B "$freed" 2>/dev/null || echo "${freed} bytes")"
+  total_after=$(_avail_bytes)
+  echo "TOTAL freed this run: $(numfmt --to=iec --suffix=B "$((total_after - total_before))" 2>/dev/null || echo "$((total_after - total_before)) bytes")"
 
   echo "Biggest remaining dirs in ~/.local:"
   du -xhd1 ~/.local 2>/dev/null | sort -h | tail

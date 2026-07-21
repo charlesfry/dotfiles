@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+wl-paste | sed -E '
+s#https://x\.com/#https://vxtwitter.com/#g
+s#https://twitter\.com/#https://vxtwitter.com/#g
+' | wl-copy

@@ -14,6 +14,10 @@ padding.x = 14
 padding.y = 14
 decorations = "None"
 
+[cursor]
+# Distinct cursor while in Vi mode (Ctrl+Shift+Space) so nav vs typing is obvious
+vi_mode_style = { shape = "Block", blinking = "Off" }
+
 [keyboard]
 bindings = [
 { key = "Insert", mods = "Shift", action = "Paste" },
