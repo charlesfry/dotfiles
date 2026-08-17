@@ -7,4 +7,5 @@
 /customs/**
 !/customs/**/
 !/customs/**/*.example
+*.bak
 
