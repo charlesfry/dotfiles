@@ -25,8 +25,3 @@ source = ~/.config/hypr/autostart.conf
 
 # Dont nag me for donations
 no_donation_nag = 1
-
-# Border colors for windows the shell has marked as being in a work tree.
-# Both the tag and this file are produced by ~/.local/bin/dir-theme, whose zone
-# table is the single place these colors are defined.
-source = ~/.config/hypr/dir-theme.conf

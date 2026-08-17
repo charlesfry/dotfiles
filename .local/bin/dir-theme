@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+# Recolor the terminal based on which directory tree the shell is in, so a work
+# window is distinguishable from a personal one at a glance.
+#
+# Two channels, both of which outlive the shell that set them and so carry into
+# long-running TUIs like claude:
+#   - Hyprland window border, via a tag on the window plus a windowrule
+#     generated into ~/.config/hypr/dir-theme.conf from the table below
+#   - terminal background, via OSC 11
+#
+# Callers: the PROMPT_COMMAND hook in ~/.config/bash/dir-theme.bash, and the
+# SessionStart hook in ~/.claude-work/settings.json (which covers
+# `cd somewhere && claude`, where no prompt is drawn between the two).
+#
+# Usage: dir-theme [DIR]     (DIR defaults to $PWD)
+set -uo pipefail
+
+target=${1:-$PWD}
+
+# Zone table — the only place a zone's look is defined. One line per tree you
+# want marked; first match wins. The trailing slash on the path lets a bare
+# glob match the tree root as well as anything under it.
+#   path glob | tag | active border | inactive border | background
+ZONES=(
+    "$HOME/tradeswell/*|tradeswell|rgb(ffa3dd)|rgb(441144)|#1a0d2e"
+)
+
+# Hyprland can't be told a border color per window at runtime (setprop was
+# dropped in 0.56), so the borders have to go through a windowrule. Generate it
+# from the table instead of hand-keeping a second copy; hyprland.conf sources
+# the result. Only rewrites (and reloads) when the table actually changed.
+sync_hypr() {
+    local out=~/.config/hypr/dir-theme.conf z tag ba bi want
+    want="# Generated from the zone table in ~/.local/bin/dir-theme. Do not edit."
+    for z in "${ZONES[@]}"; do
+        IFS='|' read -r _ tag ba bi _ <<<"$z"
+        want+=$'\n'"windowrule = border_color $ba $bi, match:tag $tag"
+    done
+    [ "$want" = "$(<"$out")" ] 2>/dev/null && return
+    printf '%s\n' "$want" >"$out" || return
+    hyprctl reload >/dev/null 2>&1
+}
+sync_hypr
+
+# Match the current directory, and collect every tag this script manages so
+# leaving a zone clears the previous one.
+zone="" border_active="" border_inactive="" background="" ALL_ZONES=()
+for z in "${ZONES[@]}"; do
+    IFS='|' read -r glob tag ba bi bg <<<"$z"
+    ALL_ZONES+=("$tag")
+    # shellcheck disable=SC2053  # glob is a pattern, deliberately unquoted
+    if [ -z "$zone" ] && [[ "$target/" == $glob ]]; then
+        zone=$tag border_active=$ba border_inactive=$bi background=$bg
+    fi
+done
+
+# The terminal emulator, not this script: walk up the process tree until a pid
+# matches a Hyprland client. Reading /proc directly keeps this fork-free.
+ppid_of() {
+    local stat
+    stat=$(</proc/"$1"/stat) || return 1
+    stat=${stat#*") "}        # skip comm, which may itself contain spaces
+    set -- $stat
+    printf '%s\n' "$2"        # state, then ppid
+}
+
+# Prints "address tag tag ...". The tags come free with the same query as the
+# address, which lets the caller skip dispatches for tags already correct.
+window_state() {
+    [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ] || return 1
+    command -v hyprctl >/dev/null 2>&1 || return 1
+
+    local pid=$PPID pids=()
+    while [ -n "$pid" ] && [ "$pid" -gt 1 ] 2>/dev/null; do
+        pids+=("$pid")
+        pid=$(ppid_of "$pid") || break
+    done
+    [ ${#pids[@]} -gt 0 ] || return 1
+
+    hyprctl -j clients 2>/dev/null | jq -r \
+        --argjson pids "$(printf '%s\n' "${pids[@]}" | jq -Rcs '[split("\n")[] | select(length > 0) | tonumber]')" \
+        'map(select([.pid] | inside($pids)))[0] // empty
+         | [.address, (.tags[]? | rtrimstr("*"))] | join(" ")'
+}
+
+# The background to fall back to on leaving a zone. Read from the live omarchy
+# theme so it stays correct across theme switches; OSC 111 (reset to the
+# configured default) if that lookup fails.
+theme_background() {
+    sed -n "s/^background *= *['\"]\(#[0-9a-fA-F]\{6\}\)['\"].*/\1/p" \
+        ~/.config/omarchy/current/theme/alacritty.toml 2>/dev/null | head -1
+}
+
+# OSC goes to the tty rather than stdout: when a Claude Code hook calls us,
+# stdout is captured into the transcript instead of reaching the terminal. The
+# 2>/dev/null comes first so it is already in place if opening /dev/tty fails,
+# which it does when there is no controlling terminal (Claude Code hooks).
+emit() { printf "$@" 2>/dev/null >/dev/tty || true; }
+
+read -r address tags < <(window_state) || address=""
+if [ -n "$address" ]; then
+    tags=" ${tags-} "
+    for tag in "${ALL_ZONES[@]}"; do
+        if [ "$tag" = "$zone" ]; then
+            [ "$tags" = "${tags/ $tag /}" ] &&
+                hyprctl dispatch tagwindow "+$tag" "address:$address" >/dev/null 2>&1
+        elif [ "$tags" != "${tags/ $tag /}" ]; then
+            # `--` so hyprctl reads -tag as a tag to remove, not as its own flag.
+            hyprctl dispatch tagwindow -- "-$tag" "address:$address" >/dev/null 2>&1
+        fi
+    done
+fi
+
+if [ -n "$zone" ]; then
+    emit '\033]11;%s\007' "$background"
+else
+    default=$(theme_background)
+    if [ -n "$default" ]; then
+        emit '\033]11;%s\007' "$default"
+    else
+        emit '\033]111\007'
+    fi
+fi
