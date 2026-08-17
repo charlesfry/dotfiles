@@ -341,3 +341,7 @@ command -v direnv >/dev/null && eval "$(direnv hook bash)"
 # only on a "Charles PC"; absent on a generic install.
 [ -f ~/.bashrc.personal ] && source ~/.bashrc.personal
 
+eval "$(direnv hook bash)"
+
+# Recolor the terminal per directory tree (work vs personal)
+source ~/.config/bash/dir-theme.bash
